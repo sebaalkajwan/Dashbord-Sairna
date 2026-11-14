@@ -1,9 +1,17 @@
 import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { LayoutDashboard, Building2, Bus, MapPin, Ticket, Users, LogOut } from 'lucide-react';
+import { getAdminProfile } from '../services/dashboardApi';
 
 export const DashboardLayout = () => {
   const navigate = useNavigate();
+
+  // جلب بيانات المشرف الحالي من الـ API
+  const { data: admin } = useQuery({
+    queryKey: ['adminProfile'],
+    queryFn: getAdminProfile,
+  });
 
   const handleLogout = () => {
     localStorage.removeItem('dashboard_token');
@@ -25,14 +33,18 @@ export const DashboardLayout = () => {
       {/* الشريط الجانبي (Sidebar) */}
       <aside className="w-64 bg-surface border-l border-border flex flex-col justify-between p-6 shrink-0">
         <div>
-          {/* شعار لوحة التحكم */}
+          {/* معلومات المشرف وشعار لوحة التحكم */}
           <div className="flex items-center gap-3 mb-10 pb-4 border-b border-border">
-            <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center font-black text-base shadow-sm">
-              S
+            <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center font-black text-base shadow-sm shrink-0">
+              {admin?.name ? admin.name.charAt(0).toUpperCase() : 'S'}
             </div>
-            <div>
-              <h2 className="text-sm font-black text-text">Sairna Admin</h2>
-              <span className="text-[11px] text-muted block">لوحة الإدارة والتحكم</span>
+            <div className="overflow-hidden">
+              <h2 className="text-sm font-black text-text truncate">
+                {admin?.name || 'Sairna Admin'}
+              </h2>
+              <span className="text-[11px] text-muted block truncate" title={admin?.email}>
+                {admin?.email || 'لوحة الإدارة والتحكم'}
+              </span>
             </div>
           </div>
 

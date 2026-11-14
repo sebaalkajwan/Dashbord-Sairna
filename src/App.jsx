@@ -7,6 +7,7 @@ import CompaniesPage from './pages/CompaniesPage/CompaniesPage';
 import TripsPage from './pages/TripsPage/TripsPage';
 import BookingsPage from './pages/BookingsPage/BookingsPage';
 import UsersPage from './pages/UsersPage/UsersPage';
+import CitiesPage from './pages/CitiesPage/CitiesPage';
 
 
 const queryClient = new QueryClient();
@@ -41,7 +42,9 @@ export function App() {
             <Route path="trips" element={<TripsPage />} />
             <Route path="bookings" element={<BookingsPage />} />
             <Route path="users" element={<UsersPage />} />
+           <Route path="cities" element={<CitiesPage />} />
           </Route>
+
 
           {/* توجيه أي مسار غير معروف إلى تسجيل الدخول */}
           <Route path="*" element={<Navigate to="/dashboard/login" replace />} />

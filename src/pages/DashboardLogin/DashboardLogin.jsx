@@ -5,7 +5,7 @@ import { ShieldCheck, Lock, Mail } from 'lucide-react';
 
 export const DashboardLogin = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('ahmad@example.com');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
