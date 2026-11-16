@@ -1,25 +1,11 @@
 import React from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getDashboardTrips, deleteTrip } from '../../services/dashboardApi';
+
 import { Trash2, Bus, MapPin, Calendar, CheckCircle2, XCircle } from 'lucide-react';
+import { useTrips } from '../../hooks/useTrips';
+import Button from '../../components/Button/Button';
 
 export const TripsPage = () => {
-  const queryClient = useQueryClient();
-
-  const { data: trips = [], isLoading, error } = useQuery({
-    queryKey: ['dashboardTrips'],
-    queryFn: getDashboardTrips,
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: deleteTrip,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dashboardTrips'] });
-    },
-    onError: (err) => {
-      alert(err.response?.data?.message || 'فشل إلغاء/حذف الرحلة');
-    },
-  });
+  const { trips, isLoading, error, deleteTrip } = useTrips();
 
   if (isLoading) {
     return <div className="text-center py-20 text-muted font-bold font-cairo">جاري تحميل الرحلات...</div>;
@@ -31,7 +17,6 @@ export const TripsPage = () => {
 
   return (
     <div className="space-y-8 font-cairo" dir="rtl">
-      {/* ترويسة الصفحة */}
       <div className="flex items-center justify-between pb-6 border-b border-border">
         <div>
           <h1 className="text-2xl font-black text-text">إدارة الرحلات</h1>
@@ -39,7 +24,6 @@ export const TripsPage = () => {
         </div>
       </div>
 
-      {/* جدول الرحلات */}
       <div className="bg-surface border border-border rounded-[22px] overflow-hidden shadow-sm">
         <table className="w-full text-right border-collapse">
           <thead>
@@ -58,13 +42,11 @@ export const TripsPage = () => {
             {trips.map((trip) => (
               <tr key={trip.id} className="hover:bg-surface-alt/50 transition-colors">
                 
-                {/* كود الرحلة والمعرّف */}
                 <td className="p-4">
                   <span className="font-black text-text block">{trip.code}</span>
                   <span className="text-[10px] text-muted">ID: #{trip.id}</span>
                 </td>
 
-                {/* شركة النقل */}
                 <td className="p-4 font-bold text-text">
                   <div className="flex items-center gap-2">
                     <Bus className="w-4 h-4 text-primary shrink-0" />
@@ -72,7 +54,6 @@ export const TripsPage = () => {
                   </div>
                 </td>
 
-                {/* المسار */}
                 <td className="p-4">
                   <div className="flex items-center gap-1.5 text-text font-bold">
                     <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
@@ -82,7 +63,6 @@ export const TripsPage = () => {
                   </div>
                 </td>
 
-                {/* موعد الانطلاق */}
                 <td className="p-4 text-muted">
                   <div className="flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5 shrink-0" />
@@ -90,17 +70,14 @@ export const TripsPage = () => {
                   </div>
                 </td>
 
-                {/* السعر */}
                 <td className="p-4 font-black text-primary">
                   {trip.price?.toLocaleString()} ل.س
                 </td>
 
-                {/* المقاعد الكلية */}
                 <td className="p-4 font-bold text-muted">
                   {trip.totalSeats} مقعد
                 </td>
 
-                {/* حالة الرحلة */}
                 <td className="p-4">
                   {trip.status === 'AVAILABLE' ? (
                     <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-500 bg-emerald-500/10 px-2.5 py-1 rounded-full">
@@ -113,19 +90,18 @@ export const TripsPage = () => {
                   )}
                 </td>
 
-                {/* الإجراءات (حذف/إلغاء الرحلة) */}
                 <td className="p-4 text-left">
-                  <button
+                  <Button
+                    variant="danger"
                     onClick={() => {
                       if (window.confirm(`هل أنت متأكد من إلغاء الرحلة رقم ${trip.code}؟`)) {
-                        deleteMutation.mutate(trip.id);
+                        deleteTrip(trip.id);
                       }
                     }}
-                    className="p-2.5 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500/25 transition-all cursor-pointer"
+                    className="p-2.5 ml-auto"
+                    icon={Trash2}
                     title="إلغاء/حذف الرحلة"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  />
                 </td>
 
               </tr>

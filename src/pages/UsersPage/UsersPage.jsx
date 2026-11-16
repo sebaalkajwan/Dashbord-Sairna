@@ -1,13 +1,9 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { getDashboardUsers } from '../../services/dashboardApi';
-import { Users, Shield, User, Calendar } from 'lucide-react';
+import { Shield, User, Calendar } from 'lucide-react';
+import { useUsers } from '../../hooks/useUsers';
 
 export const UsersPage = () => {
-  const { data: users = [], isLoading, error } = useQuery({
-    queryKey: ['dashboardUsers'],
-    queryFn: getDashboardUsers,
-  });
+  const { users, isLoading, error } = useUsers();
 
   if (isLoading) {
     return <div className="text-center py-20 text-muted font-bold font-cairo">جاري تحميل المستخدمين...</div>;
@@ -19,7 +15,6 @@ export const UsersPage = () => {
 
   return (
     <div className="space-y-8 font-cairo" dir="rtl">
-      {/* ترويسة الصفحة */}
       <div className="flex items-center justify-between pb-6 border-b border-border">
         <div>
           <h1 className="text-2xl font-black text-text">إدارة المستخدمين</h1>
@@ -27,7 +22,6 @@ export const UsersPage = () => {
         </div>
       </div>
 
-      {/* جدول المستخدمين */}
       <div className="bg-surface border border-border rounded-[22px] overflow-hidden shadow-sm">
         <table className="w-full text-right border-collapse">
           <thead>
@@ -42,7 +36,6 @@ export const UsersPage = () => {
             {users.map((user) => (
               <tr key={user.id} className="hover:bg-surface-alt/50 transition-colors">
                 
-                {/* اسم المستخدم والمعرّف */}
                 <td className="p-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-soft-teal text-primary flex items-center justify-center font-black shrink-0">
@@ -55,12 +48,10 @@ export const UsersPage = () => {
                   </div>
                 </td>
 
-                {/* البريد الإلكتروني */}
                 <td className="p-4 font-bold text-muted" dir="ltr">
                   {user.email}
                 </td>
 
-                {/* الصلاحية */}
                 <td className="p-4">
                   {user.role === 'ADMIN' ? (
                     <span className="inline-flex items-center gap-1 text-[11px] font-black text-purple-600 bg-purple-500/10 px-3 py-1 rounded-full">
@@ -73,7 +64,7 @@ export const UsersPage = () => {
                   )}
                 </td>
 
-                {/* تاريخ التسجيل */}
+        
                 <td className="p-4 text-muted">
                   <div className="flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5 shrink-0" />

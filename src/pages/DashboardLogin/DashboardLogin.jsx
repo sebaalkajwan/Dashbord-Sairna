@@ -1,27 +1,22 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { adminLogin } from '../../services/dashboardApi';
+
 import { ShieldCheck, Lock, Mail } from 'lucide-react';
+import { useAdminLogin } from '../../hooks/useAdminLogin';
+import Button from '../../components/Button/Button';
 
 export const DashboardLogin = () => {
-  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [formError, setFormError] = useState('');
+  const { login, isLoading, error } = useAdminLogin();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-
+    setFormError('');
     try {
-      await adminLogin({ email, password });
-      navigate('/dashboard/overview');
+      await login({ email, password });
     } catch (err) {
-      setError(err.response?.data?.message || 'فشل تسجيل الدخول، تحقق من البيانات.');
-    } finally {
-      setLoading(false);
+      setFormError(err.response?.data?.message || 'فشل تسجيل الدخول، تحقق من البيانات.');
     }
   };
 
@@ -37,9 +32,9 @@ export const DashboardLogin = () => {
           <p className="text-xs text-muted mt-1">سجل دخولك لإدارة الرحلات والشركات والمدن</p>
         </div>
 
-        {error && (
+        {(formError || error) && (
           <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-600 rounded-xl text-xs font-bold text-center">
-            {error}
+            {formError || error}
           </div>
         )}
 
@@ -74,13 +69,13 @@ export const DashboardLogin = () => {
             </div>
           </div>
 
-          <button
+          <Button
             type="submit"
-            disabled={loading}
-            className="w-full bg-primary text-white py-3 rounded-xl text-xs font-black shadow-md hover:opacity-95 transition-all cursor-pointer mt-2"
+            disabled={isLoading}
+            className="w-full py-3 text-xs font-black mt-2"
           >
-            {loading ? 'جاري التحقق...' : 'تسجيل الدخول'}
-          </button>
+            {isLoading ? 'جاري التحقق...' : 'تسجيل الدخول'}
+          </Button>
         </form>
 
       </div>

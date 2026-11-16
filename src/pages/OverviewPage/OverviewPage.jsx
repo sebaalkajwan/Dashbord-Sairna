@@ -1,13 +1,11 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { getDashboardOverview } from '../../services/dashboardApi';
+
 import { Users, Ticket, Bus, Building2, TrendingUp, CheckCircle2 } from 'lucide-react';
+import { useOverview } from '../../hooks/useOverview';
+import Card from '../../components/Card/Card';
 
 export const OverviewPage = () => {
-  const { data: overview, isLoading, error } = useQuery({
-    queryKey: ['dashboardOverview'],
-    queryFn: getDashboardOverview,
-  });
+  const { overview, isLoading, error } = useOverview();
 
   if (isLoading) {
     return (
@@ -61,7 +59,6 @@ export const OverviewPage = () => {
   return (
     <div className="space-y-8 font-cairo" dir="rtl">
       
-      {/* ترويسة الصفحة */}
       <div className="flex items-center justify-between pb-6 border-b border-border">
         <div>
           <h1 className="text-2xl font-black text-text">لوحة القيادة الرئيسية</h1>
@@ -73,34 +70,29 @@ export const OverviewPage = () => {
         </div>
       </div>
 
-      {/* بطاقات الإحصائيات */}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
         {stats.map((stat, idx) => {
           const Icon = stat.icon;
           return (
-            <div
-              key={idx}
-              className="bg-surface border border-border rounded-[22px] p-6 shadow-sm flex items-center justify-between"
-            >
+            <Card key={idx} className="flex items-center justify-between">
               <div>
                 <span className="text-xs text-muted block mb-1 font-bold">{stat.title}</span>
                 <span className="text-2xl font-black text-text">{stat.value}</span>
               </div>
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${stat.color}`}>
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${stat.color}`}>
                 <Icon className="w-6 h-6" />
               </div>
-            </div>
+            </Card>
           );
         })}
       </div>
 
-      {/* قسم إضافي للنشاطات أو اختصارات سريعة */}
-      <div className="bg-surface border border-border rounded-[22px] p-6 shadow-sm">
-        <h3 className="text-base font-black text-text mb-4">إدارة سريعة</h3>
+      <Card title="إدارة سريعة">
         <p className="text-xs text-muted leading-relaxed">
           يمكنك الانتقال عبر الشريط الجانبي لإدارة شركات النقل، إضافة وتعديل الرحلات، مراجعة كافة الحجوزات وتتبع حالاتها، أو استعراض حسابات المستخدمين.
         </p>
-      </div>
+      </Card>
 
     </div>
   );

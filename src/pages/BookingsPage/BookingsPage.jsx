@@ -1,25 +1,11 @@
 import React from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getDashboardBookings, cancelBooking } from '../../services/dashboardApi';
-import { Ticket, User, MapPin, CheckCircle2, XCircle, XOctagon } from 'lucide-react';
+
+import { User, CheckCircle2, XCircle, XOctagon } from 'lucide-react';
+import { useBookings } from '../../hooks/useBookings';
+import Button from '../../components/Button/Button';
 
 export const BookingsPage = () => {
-  const queryClient = useQueryClient();
-
-  const { data: bookings = [], isLoading, error } = useQuery({
-    queryKey: ['dashboardBookings'],
-    queryFn: getDashboardBookings,
-  });
-
-  const cancelMutation = useMutation({
-    mutationFn: cancelBooking,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dashboardBookings'] });
-    },
-    onError: (err) => {
-      alert(err.response?.data?.message || 'فشل إلغاء الحجز');
-    },
-  });
+  const { bookings, isLoading, error, cancelBooking } = useBookings();
 
   if (isLoading) {
     return <div className="text-center py-20 text-muted font-bold font-cairo">جاري تحميل الحجوزات...</div>;
@@ -31,7 +17,6 @@ export const BookingsPage = () => {
 
   return (
     <div className="space-y-8 font-cairo" dir="rtl">
-      {/* ترويسة الصفحة */}
       <div className="flex items-center justify-between pb-6 border-b border-border">
         <div>
           <h1 className="text-2xl font-black text-text">إدارة الحجوزات</h1>
@@ -39,7 +24,6 @@ export const BookingsPage = () => {
         </div>
       </div>
 
-      {/* جدول الحجوزات */}
       <div className="bg-surface border border-border rounded-[22px] overflow-hidden shadow-sm">
         <table className="w-full text-right border-collapse">
           <thead>
@@ -56,14 +40,10 @@ export const BookingsPage = () => {
           <tbody className="divide-y divide-border text-xs">
             {bookings.map((booking) => (
               <tr key={booking.id} className="hover:bg-surface-alt/50 transition-colors">
-                
-                {/* كود الحجز */}
                 <td className="p-4">
                   <span className="font-black text-text block">{booking.code}</span>
                   <span className="text-[10px] text-muted">ID: #{booking.id}</span>
                 </td>
-
-                {/* المستخدم */}
                 <td className="p-4">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-xl bg-soft-teal text-primary flex items-center justify-center font-black shrink-0">
@@ -75,8 +55,6 @@ export const BookingsPage = () => {
                     </div>
                   </div>
                 </td>
-
-                {/* المسار والرحلة */}
                 <td className="p-4">
                   <div className="font-bold text-text flex items-center gap-1">
                     <span>{booking.trip?.origin?.name}</span>
@@ -85,8 +63,6 @@ export const BookingsPage = () => {
                   </div>
                   <span className="text-[10px] text-muted block mt-0.5">رحلة: {booking.trip?.code}</span>
                 </td>
-
-                {/* المقاعد والركاب */}
                 <td className="p-4">
                   {booking.seats && booking.seats.length > 0 ? (
                     <div className="space-y-0.5">
@@ -100,13 +76,9 @@ export const BookingsPage = () => {
                     <span className="text-muted italic">لا توجد مقاعد محددة</span>
                   )}
                 </td>
-
-                {/* السعر الإجمالي */}
                 <td className="p-4 font-black text-primary">
                   {booking.totalPrice?.toLocaleString()} ل.س
                 </td>
-
-                {/* الحالة */}
                 <td className="p-4">
                   {booking.status === 'CONFIRMED' ? (
                     <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-500 bg-emerald-500/10 px-2.5 py-1 rounded-full">
@@ -118,25 +90,23 @@ export const BookingsPage = () => {
                     </span>
                   )}
                 </td>
-
-                {/* الإجراءات */}
                 <td className="p-4 text-left">
                   {booking.status === 'CONFIRMED' && (
-                    <button
+                    <Button
+                      variant="danger"
                       onClick={() => {
                         if (window.confirm(`هل أنت متأكد من إلغاء الحجز رقم ${booking.code}؟`)) {
-                          cancelMutation.mutate(booking.id);
+                          cancelBooking(booking.id);
                         }
                       }}
-                      className="px-3 py-1.5 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500/25 transition-all font-bold text-xs flex items-center gap-1.5 cursor-pointer ml-auto"
+                      className="ml-auto px-3 py-1.5"
+                      icon={XOctagon}
                       title="إلغاء الحجز"
                     >
-                      <XOctagon className="w-3.5 h-3.5" />
-                      <span>إلغاء</span>
-                    </button>
+                      إلغاء
+                    </Button>
                   )}
                 </td>
-
               </tr>
             ))}
           </tbody>

@@ -1,52 +1,33 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getDashboardCities, createCity, deleteCity } from '../../services/dashboardApi';
+
 import { MapPin, Plus, Trash2, Navigation } from 'lucide-react';
+import Card from '../../components/Card/Card';
+import Button from '../../components/Button/Button';
+import { useCities } from '../../hooks/useCities';
 
 export const CitiesPage = () => {
-  const queryClient = useQueryClient();
+  const { cities, isLoading, error, addCity, isAdding, deleteCity } = useCities();
   const [name, setName] = useState('');
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
 
-  const { data: citiesData, isLoading, error } = useQuery({
-    queryKey: ['dashboardCities'],
-    queryFn: getDashboardCities,
-  });
-
-  const cities = Array.isArray(citiesData) ? citiesData : citiesData?.data || [];
-
-  const addMutation = useMutation({
-    mutationFn: createCity,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dashboardCities'] });
-      setName('');
-      setLatitude('');
-      setLongitude('');
-    },
-    onError: (err) => {
-      alert(err.response?.data?.message || 'فشل إضافة المدينة');
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: deleteCity,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dashboardCities'] });
-    },
-    onError: (err) => {
-      alert(err.response?.data?.message || 'لا يمكن حذف هذه المدينة لارتباطها برحلات');
-    },
-  });
-
   const handleAddCity = (e) => {
     e.preventDefault();
     if (!name.trim()) return;
-    addMutation.mutate({
-      name: name.trim(),
-      latitude: latitude ? parseFloat(latitude) : undefined,
-      longitude: longitude ? parseFloat(longitude) : undefined,
-    });
+    addCity(
+      {
+        name: name.trim(),
+        latitude: latitude ? parseFloat(latitude) : undefined,
+        longitude: longitude ? parseFloat(longitude) : undefined,
+      },
+      {
+        onSuccess: () => {
+          setName('');
+          setLatitude('');
+          setLongitude('');
+        }
+      }
+    );
   };
 
   if (isLoading) {
@@ -59,7 +40,6 @@ export const CitiesPage = () => {
 
   return (
     <div className="space-y-8 font-cairo" dir="rtl">
-      {/* الترويسة */}
       <div className="flex items-center justify-between pb-6 border-b border-border">
         <div>
           <h1 className="text-2xl font-black text-text">إدارة المدن</h1>
@@ -67,10 +47,8 @@ export const CitiesPage = () => {
         </div>
       </div>
 
-      {/* نموذج إضافة مدينة جديدة */}
-      <form onSubmit={handleAddCity} className="bg-surface border border-border rounded-[22px] p-6 shadow-sm">
-        <h3 className="text-sm font-black text-text mb-4">إضافة مدينة جديدة</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      <Card title="إضافة مدينة جديدة">
+        <form onSubmit={handleAddCity} className="grid grid-cols-1 sm:grid-cols-4 gap-4">
           <input
             type="text"
             placeholder="اسم المدينة (مثال: دمشق)"
@@ -95,18 +73,12 @@ export const CitiesPage = () => {
             onChange={(e) => setLongitude(e.target.value)}
             className="bg-background border border-border rounded-xl px-4 py-2.5 text-xs font-bold text-text focus:outline-none focus:border-primary"
           />
-          <button
-            type="submit"
-            disabled={addMutation.isPending}
-            className="bg-primary text-white rounded-xl px-4 py-2.5 text-xs font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
-          >
-            <Plus className="w-4 h-4" />
-            <span>{addMutation.isPending ? 'جاري الإضافة...' : 'إضافة مدينة'}</span>
-          </button>
-        </div>
-      </form>
+          <Button type="submit" disabled={isAdding} icon={Plus}>
+            {isAdding ? 'جاري الإضافة...' : 'إضافة مدينة'}
+          </Button>
+        </form>
+      </Card>
 
-      {/* شبكة عرض المدن */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
         {cities.map((city) => (
           <div
@@ -119,9 +91,7 @@ export const CitiesPage = () => {
               </div>
               <div>
                 <h4 className="text-sm font-black text-text">{city.name}</h4>
-                <span className="text-[11px] text-muted block mt-0.5">
-                  معرّف المدينة: #{city.id}
-                </span>
+                <span className="text-[11px] text-muted block mt-0.5">معرّف المدينة: #{city.id}</span>
                 {(city.latitude || city.longitude) && (
                   <span className="text-[10px] text-muted/80 flex items-center gap-1 mt-1" dir="ltr">
                     <Navigation className="w-3 h-3 text-primary" />
@@ -131,17 +101,17 @@ export const CitiesPage = () => {
               </div>
             </div>
 
-            <button
+            <Button
+              variant="danger"
               onClick={() => {
                 if (window.confirm(`هل أنت متأكد من حذف مدينة "${city.name}"؟`)) {
-                  deleteMutation.mutate(city.id);
+                  deleteCity(city.id);
                 }
               }}
-              className="text-red-500 hover:bg-red-500/10 p-2 rounded-xl transition-colors"
+              className="p-2"
+              icon={Trash2}
               title="حذف المدينة"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+            />
           </div>
         ))}
       </div>

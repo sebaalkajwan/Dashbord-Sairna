@@ -7,7 +7,6 @@ const dashboardApi = axios.create({
   },
 });
 
-// إرفاق الـ Token تلقائياً مع كل طلب
 dashboardApi.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('dashboard_token');
@@ -28,7 +27,6 @@ export const adminLogin = async (credentials) => {
 
   const { data } = await dashboardApi.post('/auth/login', cleanCredentials);
 
-  // التقاط التوكن مهما كان هيكل استجابة السيرفر
   const token =
     data?.token ||
     data?.accessToken ||
@@ -150,5 +148,22 @@ export const getAdminProfile= async () => {
   const { data } = await dashboardApi.get('/auth/me');
   return data;
 };
+
+dashboardApi.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('dashboard_token');
+      
+      if (window.location.pathname !== '/dashboard/login') {
+        window.location.href = '/dashboard/login';
+      }
+    }
+    
+    return Promise.reject(error);
+  }
+);
 
 export default dashboardApi;

@@ -1,48 +1,30 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getDashboardCompanies, createCompany, deleteCompany } from '../../services/dashboardApi';
+
 import { Building2, Plus, Trash2, CheckCircle2, XCircle } from 'lucide-react';
+import Button from '../../components/Button/Button';
+import { useCompanies } from '../../hooks/useCompanies';
 
 export const CompaniesPage = () => {
-  const queryClient = useQueryClient();
+  const { companies, isLoading, error, createCompany, isCreating, deleteCompany } = useCompanies();
   const [showModal, setShowModal] = useState(false);
   const [name, setName] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
 
-  const { data: companies = [], isLoading, error } = useQuery({
-    queryKey: ['dashboardCompanies'],
-    queryFn: getDashboardCompanies,
-  });
-
-  const createMutation = useMutation({
-    mutationFn: createCompany,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dashboardCompanies'] });
-      setShowModal(false);
-      setName('');
-      setLogoUrl('');
-    },
-    onError: (err) => {
-      alert(err.response?.data?.message || 'فشل إضافة الشركة');
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: deleteCompany,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dashboardCompanies'] });
-    },
-    onError: (err) => {
-      alert(err.response?.data?.message || 'فشل حذف الشركة');
-    },
-  });
-
   const handleSubmit = (e) => {
     e.preventDefault();
-    createMutation.mutate({ 
-      name: name.trim(), 
-      logoUrl: logoUrl.trim() ? logoUrl.trim() : null 
-    });
+    createCompany(
+      { 
+        name: name.trim(), 
+        logoUrl: logoUrl.trim() ? logoUrl.trim() : null 
+      },
+      {
+        onSuccess: () => {
+          setShowModal(false);
+          setName('');
+          setLogoUrl('');
+        }
+      }
+    );
   };
 
   if (isLoading) {
@@ -61,16 +43,11 @@ export const CompaniesPage = () => {
           <h1 className="text-2xl font-black text-text">شركات النقل</h1>
           <p className="text-xs text-muted mt-1">إدارة الشركات والناقلين المعتمدين في النظام ({companies.length} شركة).</p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="bg-primary text-white text-xs font-bold px-5 py-3 rounded-xl shadow-md hover:opacity-95 flex items-center gap-2 cursor-pointer transition-all"
-        >
-          <Plus className="w-4 h-4" />
-          <span>إضافة شركة جديدة</span>
-        </button>
+        <Button onClick={() => setShowModal(true)} icon={Plus}>
+          إضافة شركة جديدة
+        </Button>
       </div>
 
-      {/* شبكة عرض الشركات */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {companies.map((company) => (
           <div 
@@ -89,7 +66,6 @@ export const CompaniesPage = () => {
                 <h3 className="text-sm font-black text-text">{company.name}</h3>
                 <span className="text-[11px] text-muted block mt-0.5">معرّف الشركة: #{company.id}</span>
                 
-                {/* شارة حالة التفعيل */}
                 <div className="mt-2">
                   {company.isActive ? (
                     <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2.5 py-0.5 rounded-full">
@@ -104,22 +80,21 @@ export const CompaniesPage = () => {
               </div>
             </div>
 
-            <button
+            <Button
+              variant="danger"
               onClick={() => {
                 if (window.confirm(`هل أنت متأكد من أرشفة/حذف شركة "${company.name}"؟`)) {
-                  deleteMutation.mutate(company.id);
+                  deleteCompany(company.id);
                 }
               }}
-              className="text-red-500 hover:bg-red-500/10 p-2.5 rounded-xl transition-colors cursor-pointer"
+              className="p-2.5"
+              icon={Trash2}
               title="حذف الشركة"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+            />
           </div>
         ))}
       </div>
 
-      {/* نافذة الإضافة (Modal) */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
           <div className="bg-surface border border-border rounded-[24px] p-6 max-w-md w-full shadow-lg">
@@ -147,20 +122,19 @@ export const CompaniesPage = () => {
                 />
               </div>
               <div className="flex items-center justify-end gap-3 pt-4">
-                <button
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={() => setShowModal(false)}
-                  className="px-5 py-2.5 rounded-xl text-xs font-bold text-muted bg-surface-alt hover:bg-border cursor-pointer transition-colors"
                 >
                   إلغاء
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
-                  disabled={createMutation.isPending}
-                  className="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-primary shadow-sm hover:opacity-95 cursor-pointer transition-opacity disabled:opacity-50"
+                  disabled={isCreating}
                 >
-                  {createMutation.isPending ? 'جاري الحفظ...' : 'حفظ الشركة'}
-                </button>
+                  {isCreating ? 'جاري الحفظ...' : 'حفظ الشركة'}
+                </Button>
               </div>
             </form>
           </div>
